@@ -7,5 +7,7 @@
 
     <!-- Details activity -->
     <string name="title_details_activity">Details Activity</string>
+    <string name="source_main_activity">Source: Main Activity</string>
+    <string name="source_deep_linking">Source: Deep Linking</string>
 
 </resources>

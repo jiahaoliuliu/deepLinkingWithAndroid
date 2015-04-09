@@ -27,6 +27,8 @@ public class MainActivity extends ActionBarActivity {
             @Override
             public void onClick(View view) {
                 Intent startDetailsActivityIntent = new Intent(MainActivity.this, DetailsActivity.class);
+                startDetailsActivityIntent
+                        .putExtra(DetailsActivity.INTENT_SOURCE_KEY, getString(R.string.source_main_activity));
                 startActivity(startDetailsActivityIntent);
             }
         });

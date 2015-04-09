@@ -1,7 +1,8 @@
 <resources>
     <string name="app_name">Deep Linking With Android</string>
 
+    <!-- Main activity -->
     <string name="main_activity_name">Main Activity</string>
-
+    <string name="start_detail_activity_btn">Start detail activity</string>
 
 </resources>

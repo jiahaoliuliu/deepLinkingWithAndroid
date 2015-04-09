@@ -3,17 +3,15 @@
     android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    android:paddingBottom="@dimen/activity_vertical_margin" tools:context=".MainActivity"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    tools:context="com.jiahaoliuliu.deeplinkingwithandroid.DetailsActivity"
     android:layout_gravity="center"
     android:gravity="center"
     >
 
-    <Button
-        android:id="@+id/start_details_activity_btn"
-        android:text="@string/start_details_activity_btn"
+    <TextView
+        android:text="@string/title_details_activity"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        style="?android:attr/textAppearanceMedium"
-        />
+        android:layout_height="wrap_content" />
 
 </LinearLayout>

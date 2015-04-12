@@ -67,9 +67,10 @@ public class MainActivity extends ActionBarActivity {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         Log.d(TAG, "onNewIntent. The data from the intent is" + intent.getData());
-        if (containsDeepLinkingDetails(intent)) {
-            startDetailsActivity(ActivityStartedSource.DEEP_LINKING);
-        }
+        setIntent(intent);
+//        if (containsDeepLinkingDetails(intent)) {
+//            startDetailsActivity(ActivityStartedSource.DEEP_LINKING);
+//        }
     }
 
     @Override
@@ -86,8 +87,8 @@ public class MainActivity extends ActionBarActivity {
      *      False otherwise
      */
     private boolean containsDeepLinkingDetails(Intent intent) {
-        Log.d(TAG, "Checkin if the intent contains deeplinking details");
-        // Check if the activity has been started by deep linking
+        Log.d(TAG, "Checking if the intent contains deeplinking details");
+        // Check if the activity has been started by deep l inking
         if (intent == null) {
             throw new NullPointerException("The intent cannot be null when handling deep linking");
         }

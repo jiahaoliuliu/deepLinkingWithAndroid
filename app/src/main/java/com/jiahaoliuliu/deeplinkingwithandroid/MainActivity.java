@@ -6,11 +6,10 @@ import android.net.Uri;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
+import com.jiahaoliuliu.deeplinkingwithandroid.DetailsActivity.ActivityStartedSource;
 
 public class MainActivity extends ActionBarActivity {
 
@@ -30,60 +29,26 @@ public class MainActivity extends ActionBarActivity {
         setContentView(R.layout.activity_main);
 
         Log.d(TAG, "OnCreate");
-
         startDetailsActivityButton = (Button) findViewById(R.id.start_details_activity_btn);
         startDetailsActivityButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startDetailsActivity(getString(R.string.source_main_activity));
+                startDetailsActivity(ActivityStartedSource.MAIN_ACTIVITY);
             }
         });
-    }
-
-    private void startDetailsActivity(String source) {
-        Intent startDetailsActivityIntent = new Intent(MainActivity.this, DetailsActivity.class);
-        startDetailsActivityIntent
-                .putExtra(DetailsActivity.INTENT_SOURCE_KEY, source);
-        startActivity(startDetailsActivityIntent);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-
         Log.d(TAG, "OnResume");
-        // Check if the activity has been started by deep linking
-        Uri data = getIntent().getData();
-
-        Log.d(TAG, "Activity resumed. The data which contains the intent is " + data);
-        if (data != null
-                && DEEP_LINKING_SCHEMA.equalsIgnoreCase(data.getScheme())
-                && DEEP_LINKING_HOST.equalsIgnoreCase(data.getHost())) {
-
-            Log.d(TAG, "The activity started because deep linking. Starting the details activity");
-
-            startDetailsActivity(getString(R.string.source_deep_linking));
-
-            // Remove the data so when the main activity get resumed coming back from details
-            // activity, it won't launch it again
+        if (containsDeepLinkingDetails(getIntent())) {
+            startDetailsActivity(ActivityStartedSource.DEEP_LINKING);
+            // Remove the data from intent, so when the app goes back to the
+            // main activity from details activity, it won't invoke details
+            // activity again.
             getIntent().setData(null);
-        } else {
-            Log.d(TAG, "The activity has nothing related with deep linking. Starting the activity" +
-                    "normally.");
         }
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        Log.d(TAG, "On save instance state. Bundle: " + outState);
-        super.onSaveInstanceState(outState);
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-
-        Log.d(TAG, "On restore instance state. Bundle: " + savedInstanceState);
     }
 
     @Override
@@ -93,15 +58,18 @@ public class MainActivity extends ActionBarActivity {
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
-        Log.d(TAG, "OnStop");
-    }
-
-    @Override
     protected void onRestart() {
         super.onRestart();
         Log.d(TAG, "OnRestart");
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        Log.d(TAG, "onNewIntent. The data from the intent is" + intent.getData());
+        if (containsDeepLinkingDetails(intent)) {
+            startDetailsActivity(ActivityStartedSource.DEEP_LINKING);
+        }
     }
 
     @Override
@@ -110,9 +78,36 @@ public class MainActivity extends ActionBarActivity {
         Log.d(TAG, "OnPause");
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        Log.d(TAG, "OnDestroy");
+    /**
+     * Check if the intent contains deep linking details
+     * @param intent The intent to be checked. It cannot be null
+     * @return
+     *      True if it contains data and the schema and the host match with the deep linking details
+     *      False otherwise
+     */
+    private boolean containsDeepLinkingDetails(Intent intent) {
+        Log.d(TAG, "Checkin if the intent contains deeplinking details");
+        // Check if the activity has been started by deep linking
+        if (intent == null) {
+            throw new NullPointerException("The intent cannot be null when handling deep linking");
+        }
+
+        Uri data = intent.getData();
+        return (data != null
+                && DEEP_LINKING_SCHEMA.equalsIgnoreCase(data.getScheme())
+                && DEEP_LINKING_HOST.equalsIgnoreCase(data.getHost()));
+    }
+
+    /**
+     * Start the details activity. It requires to identify the source which the data comes.
+     * @param source
+     */
+    private void startDetailsActivity(ActivityStartedSource source) {
+        Log.d(TAG, "Starting details activity. The source is " + source.toString());
+
+        Intent startDetailsActivityIntent = new Intent(MainActivity.this, DetailsActivity.class);
+        startDetailsActivityIntent
+                .putExtra(DetailsActivity.INTENT_SOURCE_KEY, source);
+        startActivity(startDetailsActivityIntent);
     }
 }

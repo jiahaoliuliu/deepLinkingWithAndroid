@@ -29,6 +29,8 @@ public class MainActivity extends ActionBarActivity {
         this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.activity_main);
 
+        Log.d(TAG, "OnCreate");
+
         startDetailsActivityButton = (Button) findViewById(R.id.start_details_activity_btn);
         startDetailsActivityButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -49,6 +51,7 @@ public class MainActivity extends ActionBarActivity {
     protected void onResume() {
         super.onResume();
 
+        Log.d(TAG, "OnResume");
         // Check if the activity has been started by deep linking
         Uri data = getIntent().getData();
 
@@ -68,5 +71,48 @@ public class MainActivity extends ActionBarActivity {
             Log.d(TAG, "The activity has nothing related with deep linking. Starting the activity" +
                     "normally.");
         }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        Log.d(TAG, "On save instance state. Bundle: " + outState);
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+
+        Log.d(TAG, "On restore instance state. Bundle: " + savedInstanceState);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.d(TAG, "OnStart");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.d(TAG, "OnStop");
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        Log.d(TAG, "OnRestart");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.d(TAG, "OnPause");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG, "OnDestroy");
     }
 }

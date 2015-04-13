@@ -23,7 +23,16 @@ public class MainActivity extends ActionBarActivity {
 
     private Button startDetailsActivityButton;
 
-    private boolean isShowingDeepLinkingData = false;
+    // Saved the state of the last opened activity
+    private enum LastOpenedActivity {
+        // This activity
+        MAIN_ACTIVITY,
+
+        // Details activity with both variants
+        DETAILS_ACTIVITY_NORMAL, DETAILS_ACTIVITY_DEEP_LINKING;
+    }
+
+    private LastOpenedActivity lastOpenedActivity = LastOpenedActivity.MAIN_ACTIVITY;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,7 +49,7 @@ public class MainActivity extends ActionBarActivity {
             @Override
             public void onClick(View view) {
                 startDetailsActivity(ActivityStartedSource.MAIN_ACTIVITY);
-                isShowingDeepLinkingData = false;
+                lastOpenedActivity = LastOpenedActivity.DETAILS_ACTIVITY_NORMAL;
             }
         });
     }
@@ -51,7 +60,7 @@ public class MainActivity extends ActionBarActivity {
         Log.d(TAG, "OnResume");
         if (containsDeepLinkingDetails(getIntent())) {
             startDetailsActivity(ActivityStartedSource.DEEP_LINKING);
-            isShowingDeepLinkingData = true;
+            lastOpenedActivity = LastOpenedActivity.DETAILS_ACTIVITY_DEEP_LINKING;
             // Remove the data from intent, so when the app goes back to the
             // main activity from details activity, it won't invoke details
             // activity again.
@@ -75,12 +84,27 @@ public class MainActivity extends ActionBarActivity {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         Log.d(TAG, "onNewIntent. The data from the intent is " + intent.getData() +
-            ", and was it showing deep linking data? " + isShowingDeepLinkingData);
-//        setIntent(intent);
-        if (isShowingDeepLinkingData || containsDeepLinkingDetails(intent) ) {
+            ", and the last activity is " + lastOpenedActivity);
+
+        if (containsDeepLinkingDetails(intent) ) {
             startDetailsActivity(ActivityStartedSource.DEEP_LINKING);
-            isShowingDeepLinkingData = true;
+            lastOpenedActivity = LastOpenedActivity.DETAILS_ACTIVITY_DEEP_LINKING;
             getIntent().setData(null);
+        // Else check what is the last opened activity
+        } else {
+            switch (lastOpenedActivity) {
+                case MAIN_ACTIVITY:
+                    // Do nothing
+                    break;
+                case DETAILS_ACTIVITY_NORMAL:
+                    // Starts the details activity normally
+                    startDetailsActivity(ActivityStartedSource.MAIN_ACTIVITY);
+                    break;
+                case DETAILS_ACTIVITY_DEEP_LINKING:
+                    // Starts the details activity with deep linking
+                    startDetailsActivity(ActivityStartedSource.DEEP_LINKING);
+                    break;
+            }
         }
     }
 
@@ -150,7 +174,7 @@ public class MainActivity extends ActionBarActivity {
                 // false, then we will end up showing the main activity when we should show the deep linking activity.
                 if (resultCode == RESULT_OK) {
                     Log.d(TAG, "Result received and it is ok");
-                    isShowingDeepLinkingData = false;
+                    lastOpenedActivity = LastOpenedActivity.MAIN_ACTIVITY;
                 }
                 break;
         }

@@ -1,13 +1,17 @@
 package com.jiahaoliuliu.deeplinkingwithandroid;
 
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 public class DetailsActivity extends ActionBarActivity {
+
+    private static final String TAG = "DetailsActivity";
 
     /**
      * The source which started this activity
@@ -70,5 +74,12 @@ public class DetailsActivity extends ActionBarActivity {
         } else {
             return super.onOptionsItemSelected(item);
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        Log.d(TAG, "On back pressed. Sending back the result");
+        setResult(RESULT_OK);
+        finish();
     }
 }

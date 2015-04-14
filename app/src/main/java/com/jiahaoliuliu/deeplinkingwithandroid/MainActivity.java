@@ -15,8 +15,11 @@ public class MainActivity extends ActionBarActivity {
 
     private static final String TAG = "MainActivity";
 
+    // The deep linking data
     private static final String DEEP_LINKING_SCHEMA = "deeplinkingwithandroid";
     private static final String DEEP_LINKING_HOST = "details";
+    private static final String DEEP_LINKING_BACKGROUND_PARAM = "background";
+
 
     // The request code of the detailed activity
     private static final int REQUEST_CODE_DETAILS_ACTIVITY = 1001;
@@ -32,7 +35,10 @@ public class MainActivity extends ActionBarActivity {
         DETAILS_ACTIVITY_NORMAL, DETAILS_ACTIVITY_DEEP_LINKING;
     }
 
+    // Record the last opened activity
     private LastOpenedActivity lastOpenedActivity = LastOpenedActivity.MAIN_ACTIVITY;
+    // Record the last parameters passed for details activity
+    private String lastBackgroundColorByDeepLinking;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,7 +65,13 @@ public class MainActivity extends ActionBarActivity {
         super.onResume();
         Log.d(TAG, "OnResume");
         if (containsDeepLinkingDetails(getIntent())) {
-            startDetailsActivity(ActivityStartedSource.DEEP_LINKING);
+            // There is not need to check if the data is null at this point because
+            // if the data is null, containsDeepLinkingDetails() method will return false
+
+            // Get the background color. If it does not exists, it just return null
+            // in this case, the method startDetailsActivity will just ignore it
+            lastBackgroundColorByDeepLinking = getIntent().getData().getQueryParameter(DEEP_LINKING_BACKGROUND_PARAM);
+            startDetailsActivity(ActivityStartedSource.DEEP_LINKING, lastBackgroundColorByDeepLinking);
             lastOpenedActivity = LastOpenedActivity.DETAILS_ACTIVITY_DEEP_LINKING;
             // Remove the data from intent, so when the app goes back to the
             // main activity from details activity, it won't invoke details
@@ -87,7 +99,13 @@ public class MainActivity extends ActionBarActivity {
             ", and the last activity is " + lastOpenedActivity);
 
         if (containsDeepLinkingDetails(intent) ) {
-            startDetailsActivity(ActivityStartedSource.DEEP_LINKING);
+            // There is not need to check if the data is null at this point because
+            // if the data is null, containsDeepLinkingDetails() method will return false
+
+            // Get the background color. If it does not exists, it just return null
+            // in this case, the method startDetailsActivity will just ignore it
+            lastBackgroundColorByDeepLinking = intent.getData().getQueryParameter(DEEP_LINKING_BACKGROUND_PARAM);
+            startDetailsActivity(ActivityStartedSource.DEEP_LINKING, lastBackgroundColorByDeepLinking);
             lastOpenedActivity = LastOpenedActivity.DETAILS_ACTIVITY_DEEP_LINKING;
             getIntent().setData(null);
         // Else check what is the last opened activity
@@ -151,11 +169,28 @@ public class MainActivity extends ActionBarActivity {
      * @param source
      */
     private void startDetailsActivity(ActivityStartedSource source) {
-        Log.d(TAG, "Starting details activity. The source is " + source.toString());
+        startDetailsActivity(source, null);
+    }
+
+    /**
+     * Start the details activity. It requires to identify the source which the data comes.
+     * @param source
+     * @param backgroundColor The background color that the detail screen should display.
+     *                        This parameter is optional(it could be null)
+     */
+    private void startDetailsActivity(ActivityStartedSource source, String backgroundColor) {
+        Log.d(TAG, "Starting details activity. The source is " + source.toString() +
+                " and with background color " + backgroundColor);
 
         Intent startDetailsActivityIntent = new Intent(MainActivity.this, DetailsActivity.class);
         startDetailsActivityIntent
                 .putExtra(DetailsActivity.INTENT_SOURCE_KEY, source);
+
+        // The background color is optional
+        if (backgroundColor != null) {
+            startDetailsActivityIntent.putExtra(DetailsActivity.INTENT_BACKGROUND_COLOR_KEY, backgroundColor);
+        }
+
         startActivityForResult(startDetailsActivityIntent, REQUEST_CODE_DETAILS_ACTIVITY);
     }
 

@@ -15,6 +15,15 @@ android-app://com.jiahaoliuliu.deeplinkingwithandroid/deeplinkingwithandroid/det
 
 4.It will open a browser showing the link. Click on the link. The app should appear showing the detail page and the source must be Deep Linking.
 
+# Variation
+On the step 2, it is possible to add background color as parameter.
+Here is the example of the link to be used:
+android-app://com.jiahaoliuliu.deeplinkingwithandroid/deeplinkingwithandroid/details?background=olive
+
+The key must be background and the value could be any color accepted by Color.parseColor().
+For more information, see here:
+http://developer.android.com/reference/android/graphics/Color.html#parseColor(java.lang.String)
+
 # Some comments
 
 The guide from Google is not complete as it should be. It does not manage correctly the stack of the app. There are several situations where the stack matters:
@@ -27,8 +36,9 @@ The guide from Google is not complete as it should be. It does not manage correc
 
 To solve this three problems, the follow solution has been applied:
 
-1. Modify the behaviour of the app when it is launched to singleTop. This is, by adding android:launchMode="singleTop" in the manifest of the main activity.
+1. Modify the behaviour of the app when it is launched to singleTask. This is, by adding android:launchMode="singleTask" in the manifest of the main activity. This will prevent to have several instance of the same application.
 2. Because of this new mode, a new intent is created. So, the main activity also checks the intent on the onNewIntent method.
+3. If the user has opened the app with deep linking and he presses on the icon in the main menu of the app, normally the main activity will be show. To solve this, the app record the last screen and the background color if needed. This is not applicable to all the apps. So, as example, a new branch without this features is created here: https://github.com/jiahaoliuliu/deepLinkingWithAndroid/tree/affordableImpl
 
 Any question or issue, send a mail to jiahaoliuliu@gmail.com
 

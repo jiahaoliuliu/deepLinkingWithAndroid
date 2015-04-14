@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The background color for main activity -->
+    <color name="background_main_activity">#FF8800</color>
+
+    <!-- The background colors for the details activity -->
+    <color name="background_details_activity_from_deep_linking">#0099CC</color>
+    <color name="background_details_activity_from_main_activity">#9933CC</color>
+</resources>

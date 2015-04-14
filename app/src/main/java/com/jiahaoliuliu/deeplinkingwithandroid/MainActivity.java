@@ -15,10 +15,30 @@ public class MainActivity extends ActionBarActivity {
 
     private static final String TAG = "MainActivity";
 
+    // The deep linking data
     private static final String DEEP_LINKING_SCHEMA = "deeplinkingwithandroid";
     private static final String DEEP_LINKING_HOST = "details";
+    private static final String DEEP_LINKING_BACKGROUND_PARAM = "background";
+
+
+    // The request code of the detailed activity
+    private static final int REQUEST_CODE_DETAILS_ACTIVITY = 1001;
 
     private Button startDetailsActivityButton;
+
+    // Saved the state of the last opened activity
+    private enum LastOpenedActivity {
+        // This activity
+        MAIN_ACTIVITY,
+
+        // Details activity with both variants
+        DETAILS_ACTIVITY_NORMAL, DETAILS_ACTIVITY_DEEP_LINKING;
+    }
+
+    // Record the last opened activity
+    private LastOpenedActivity lastOpenedActivity = LastOpenedActivity.MAIN_ACTIVITY;
+    // Record the last parameters passed for details activity
+    private String lastBackgroundColorByDeepLinking;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,12 +48,14 @@ public class MainActivity extends ActionBarActivity {
         this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.activity_main);
 
-        Log.d(TAG, "OnCreate");
+        // check the previous content
+        Log.d(TAG, "OnCreate: " + savedInstanceState);
         startDetailsActivityButton = (Button) findViewById(R.id.start_details_activity_btn);
         startDetailsActivityButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 startDetailsActivity(ActivityStartedSource.MAIN_ACTIVITY);
+                lastOpenedActivity = LastOpenedActivity.DETAILS_ACTIVITY_NORMAL;
             }
         });
     }
@@ -43,7 +65,14 @@ public class MainActivity extends ActionBarActivity {
         super.onResume();
         Log.d(TAG, "OnResume");
         if (containsDeepLinkingDetails(getIntent())) {
-            startDetailsActivity(ActivityStartedSource.DEEP_LINKING);
+            // There is not need to check if the data is null at this point because
+            // if the data is null, containsDeepLinkingDetails() method will return false
+
+            // Get the background color. If it does not exists, it just return null
+            // in this case, the method startDetailsActivity will just ignore it
+            lastBackgroundColorByDeepLinking = getIntent().getData().getQueryParameter(DEEP_LINKING_BACKGROUND_PARAM);
+            startDetailsActivity(ActivityStartedSource.DEEP_LINKING, lastBackgroundColorByDeepLinking);
+            lastOpenedActivity = LastOpenedActivity.DETAILS_ACTIVITY_DEEP_LINKING;
             // Remove the data from intent, so when the app goes back to the
             // main activity from details activity, it won't invoke details
             // activity again.
@@ -66,9 +95,35 @@ public class MainActivity extends ActionBarActivity {
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        Log.d(TAG, "onNewIntent. The data from the intent is" + intent.getData());
-        if (containsDeepLinkingDetails(intent)) {
-            startDetailsActivity(ActivityStartedSource.DEEP_LINKING);
+        Log.d(TAG, "onNewIntent. The data from the intent is " + intent.getData() +
+            ", and the last activity is " + lastOpenedActivity + ", and the last deep linking" +
+                "color is " + lastBackgroundColorByDeepLinking);
+
+        if (containsDeepLinkingDetails(intent) ) {
+            // There is not need to check if the data is null at this point because
+            // if the data is null, containsDeepLinkingDetails() method will return false
+
+            // Get the background color. If it does not exists, it just return null
+            // in this case, the method startDetailsActivity will just ignore it
+            lastBackgroundColorByDeepLinking = intent.getData().getQueryParameter(DEEP_LINKING_BACKGROUND_PARAM);
+            startDetailsActivity(ActivityStartedSource.DEEP_LINKING, lastBackgroundColorByDeepLinking);
+            lastOpenedActivity = LastOpenedActivity.DETAILS_ACTIVITY_DEEP_LINKING;
+            getIntent().setData(null);
+        // Else check what is the last opened activity
+        } else {
+            switch (lastOpenedActivity) {
+                case MAIN_ACTIVITY:
+                    // Do nothing
+                    break;
+                case DETAILS_ACTIVITY_NORMAL:
+                    // Starts the details activity normally
+                    startDetailsActivity(ActivityStartedSource.MAIN_ACTIVITY);
+                    break;
+                case DETAILS_ACTIVITY_DEEP_LINKING:
+                    // Starts the details activity with deep linking
+                    startDetailsActivity(ActivityStartedSource.DEEP_LINKING, lastBackgroundColorByDeepLinking);
+                    break;
+            }
         }
     }
 
@@ -76,6 +131,18 @@ public class MainActivity extends ActionBarActivity {
     protected void onPause() {
         super.onPause();
         Log.d(TAG, "OnPause");
+    };
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.d(TAG, "OnStop");
+    }
+
+    @Override
+    protected void onDestroy() {
+        Log.d(TAG, "OnDestroy");
+        super.onDestroy();
     }
 
     /**
@@ -86,8 +153,8 @@ public class MainActivity extends ActionBarActivity {
      *      False otherwise
      */
     private boolean containsDeepLinkingDetails(Intent intent) {
-        Log.d(TAG, "Checkin if the intent contains deeplinking details");
-        // Check if the activity has been started by deep linking
+        Log.d(TAG, "Checking if the intent contains deeplinking details");
+        // Check if the activity has been started by deep l inking
         if (intent == null) {
             throw new NullPointerException("The intent cannot be null when handling deep linking");
         }
@@ -103,11 +170,50 @@ public class MainActivity extends ActionBarActivity {
      * @param source
      */
     private void startDetailsActivity(ActivityStartedSource source) {
-        Log.d(TAG, "Starting details activity. The source is " + source.toString());
+        startDetailsActivity(source, null);
+    }
+
+    /**
+     * Start the details activity. It requires to identify the source which the data comes.
+     * @param source
+     * @param backgroundColor The background color that the detail screen should display.
+     *                        This parameter is optional(it could be null)
+     */
+    private void startDetailsActivity(ActivityStartedSource source, String backgroundColor) {
+        Log.d(TAG, "Starting details activity. The source is " + source.toString() +
+                " and with background color " + backgroundColor);
 
         Intent startDetailsActivityIntent = new Intent(MainActivity.this, DetailsActivity.class);
         startDetailsActivityIntent
                 .putExtra(DetailsActivity.INTENT_SOURCE_KEY, source);
-        startActivity(startDetailsActivityIntent);
+
+        // The background color is optional
+        if (backgroundColor != null) {
+            startDetailsActivityIntent.putExtra(DetailsActivity.INTENT_BACKGROUND_COLOR_KEY, backgroundColor);
+        }
+
+        startActivityForResult(startDetailsActivityIntent, REQUEST_CODE_DETAILS_ACTIVITY);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.d(TAG, "On activity result received for the request code: " + requestCode + ", with" +
+                "result code: " + resultCode + ", and intent: " + data);
+        switch (requestCode) {
+            case REQUEST_CODE_DETAILS_ACTIVITY:
+                // It is very important have here Result ok, to avoid the follow problem:
+                // 1. The user starts the app by using deep linking
+                // 2. The user press on the app icon in the mobile device, so, onNewIntent is called
+                // 3. The app will finish the detail activity. This makes the details activity to finish
+                //    and return the result code 0 (Canceled).
+                // If we don't check the result code, the main activity will mark the variable isShowingDeepLinkingData as
+                // false, then we will end up showing the main activity when we should show the deep linking activity.
+                if (resultCode == RESULT_OK) {
+                    Log.d(TAG, "Result received and it is ok");
+                    lastOpenedActivity = LastOpenedActivity.MAIN_ACTIVITY;
+                }
+                break;
+        }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 }

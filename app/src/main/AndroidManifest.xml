@@ -10,7 +10,7 @@
         <activity
             android:name=".MainActivity"
             android:label="@string/title_main_activity"
-            android:launchMode="singleTop"
+            android:launchMode="singleTask"
             >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -96,7 +96,8 @@ public class MainActivity extends ActionBarActivity {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         Log.d(TAG, "onNewIntent. The data from the intent is " + intent.getData() +
-            ", and the last activity is " + lastOpenedActivity);
+            ", and the last activity is " + lastOpenedActivity + ", and the last deep linking" +
+                "color is " + lastBackgroundColorByDeepLinking);
 
         if (containsDeepLinkingDetails(intent) ) {
             // There is not need to check if the data is null at this point because
@@ -120,7 +121,7 @@ public class MainActivity extends ActionBarActivity {
                     break;
                 case DETAILS_ACTIVITY_DEEP_LINKING:
                     // Starts the details activity with deep linking
-                    startDetailsActivity(ActivityStartedSource.DEEP_LINKING);
+                    startDetailsActivity(ActivityStartedSource.DEEP_LINKING, lastBackgroundColorByDeepLinking);
                     break;
             }
         }

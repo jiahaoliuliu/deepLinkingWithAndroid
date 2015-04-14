@@ -2,6 +2,7 @@ package com.jiahaoliuliu.deeplinkingwithandroid;
 
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.graphics.Color;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -25,6 +26,10 @@ public class DetailsActivity extends ActionBarActivity {
     }
 
     public static final String INTENT_SOURCE_KEY = "com.jiahaoliuliu.deeplinkingwithandroid.sourcekye";
+    public static final String INTENT_BACKGROUND_COLOR_KEY = "com.jiahaoliuliu.deeplinkingwithandroid.backgroundcolorkey";
+
+    private int backgroundColor = -1;
+
     private LinearLayout mainLayoutLL;
     private TextView sourceTV;
 
@@ -42,6 +47,18 @@ public class DetailsActivity extends ActionBarActivity {
             throw new IllegalArgumentException("You must pass the source as the extra of the intent");
         }
 
+        // Check if the intent contains background color
+        if (extras != null && extras.containsKey(INTENT_BACKGROUND_COLOR_KEY)) {
+            String backgroundColorString = extras.getString(INTENT_BACKGROUND_COLOR_KEY);
+            Log.d(TAG, "The intent contains the background color " + backgroundColorString);
+            // Try to get the color
+            try {
+                backgroundColor = Color.parseColor(backgroundColorString);
+            } catch (IllegalArgumentException illegalArgumentException) {
+                Log.w(TAG, "The background color passed cannot be parsed");
+            }
+        }
+
         // Enables the back button
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
@@ -53,13 +70,18 @@ public class DetailsActivity extends ActionBarActivity {
         // Depending on the source, sourceTV will display a string or another
         switch(source) {
             case DEEP_LINKING:
-                mainLayoutLL.setBackgroundColor(
-                        getResources().getColor(R.color.background_details_activity_from_deep_linking));
+                // Set the default background color if it not set
+                if (backgroundColor == -1) {
+                    backgroundColor = getResources().getColor(R.color.background_details_activity_from_deep_linking);
+                }
+                mainLayoutLL.setBackgroundColor(backgroundColor);
                 sourceTV.setText(getString(R.string.source_deep_linking));
                 break;
             case MAIN_ACTIVITY:
-                mainLayoutLL.setBackgroundColor(
-                        getResources().getColor(R.color.background_details_activity_from_main_activity));
+                if (backgroundColor == -1) {
+                    backgroundColor = getResources().getColor(R.color.background_details_activity_from_main_activity);
+                }
+                mainLayoutLL.setBackgroundColor(backgroundColor);
                 sourceTV.setText(getString(R.string.source_main_activity));
                 break;
         }

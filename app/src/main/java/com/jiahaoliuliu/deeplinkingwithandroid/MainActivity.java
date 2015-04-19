@@ -22,7 +22,7 @@ public class MainActivity extends ActionBarActivity {
 
 
     // The request code of the detailed activity
-    private static final int REQUEST_CODE_DETAILS_ACTIVITY = 1001;
+//    private static final int REQUEST_CODE_DETAILS_ACTIVITY = 1001;
 
     private Button startDetailsActivityButton;
 
@@ -162,27 +162,6 @@ public class MainActivity extends ActionBarActivity {
             startDetailsActivityIntent.putExtra(DetailsActivity.INTENT_BACKGROUND_COLOR_KEY, backgroundColor);
         }
 
-        startActivityForResult(startDetailsActivityIntent, REQUEST_CODE_DETAILS_ACTIVITY);
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        Log.d(TAG, "On activity result received for the request code: " + requestCode + ", with" +
-                "result code: " + resultCode + ", and intent: " + data);
-        switch (requestCode) {
-            case REQUEST_CODE_DETAILS_ACTIVITY:
-                // It is very important have here Result ok, to avoid the follow problem:
-                // 1. The user starts the app by using deep linking
-                // 2. The user press on the app icon in the mobile device, so, onNewIntent is called
-                // 3. The app will finish the detail activity. This makes the details activity to finish
-                //    and return the result code 0 (Canceled).
-                // If we don't check the result code, the main activity will mark the variable isShowingDeepLinkingData as
-                // false, then we will end up showing the main activity when we should show the deep linking activity.
-                if (resultCode == RESULT_OK) {
-                    Log.d(TAG, "Result received and it is ok");
-                }
-                break;
-        }
-        super.onActivityResult(requestCode, resultCode, data);
+        startActivity(startDetailsActivityIntent);
     }
 }

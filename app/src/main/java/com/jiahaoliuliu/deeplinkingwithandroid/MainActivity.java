@@ -26,19 +26,8 @@ public class MainActivity extends ActionBarActivity {
 
     private Button startDetailsActivityButton;
 
-    // Saved the state of the last opened activity
-    private enum LastOpenedActivity {
-        // This activity
-        MAIN_ACTIVITY,
-
-        // Details activity with both variants
-        DETAILS_ACTIVITY_NORMAL, DETAILS_ACTIVITY_DEEP_LINKING;
-    }
-
-    // Record the last opened activity
-    private LastOpenedActivity lastOpenedActivity = LastOpenedActivity.MAIN_ACTIVITY;
-    // Record the last parameters passed for details activity
-    private String lastBackgroundColorByDeepLinking;
+    // The desired background color for details activity
+    private String backgroundColor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,7 +44,6 @@ public class MainActivity extends ActionBarActivity {
             @Override
             public void onClick(View view) {
                 startDetailsActivity(ActivityStartedSource.MAIN_ACTIVITY);
-                lastOpenedActivity = LastOpenedActivity.DETAILS_ACTIVITY_NORMAL;
             }
         });
     }
@@ -70,9 +58,8 @@ public class MainActivity extends ActionBarActivity {
 
             // Get the background color. If it does not exists, it just return null
             // in this case, the method startDetailsActivity will just ignore it
-            lastBackgroundColorByDeepLinking = getIntent().getData().getQueryParameter(DEEP_LINKING_BACKGROUND_PARAM);
-            startDetailsActivity(ActivityStartedSource.DEEP_LINKING, lastBackgroundColorByDeepLinking);
-            lastOpenedActivity = LastOpenedActivity.DETAILS_ACTIVITY_DEEP_LINKING;
+            backgroundColor = getIntent().getData().getQueryParameter(DEEP_LINKING_BACKGROUND_PARAM);
+            startDetailsActivity(ActivityStartedSource.DEEP_LINKING, backgroundColor);
             // Remove the data from intent, so when the app goes back to the
             // main activity from details activity, it won't invoke details
             // activity again.
@@ -95,9 +82,7 @@ public class MainActivity extends ActionBarActivity {
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        Log.d(TAG, "onNewIntent. The data from the intent is " + intent.getData() +
-            ", and the last activity is " + lastOpenedActivity + ", and the last deep linking" +
-                "color is " + lastBackgroundColorByDeepLinking);
+        Log.d(TAG, "onNewIntent. The data from the intent is " + intent.getData());
 
         if (containsDeepLinkingDetails(intent) ) {
             // There is not need to check if the data is null at this point because
@@ -105,25 +90,10 @@ public class MainActivity extends ActionBarActivity {
 
             // Get the background color. If it does not exists, it just return null
             // in this case, the method startDetailsActivity will just ignore it
-            lastBackgroundColorByDeepLinking = intent.getData().getQueryParameter(DEEP_LINKING_BACKGROUND_PARAM);
-            startDetailsActivity(ActivityStartedSource.DEEP_LINKING, lastBackgroundColorByDeepLinking);
-            lastOpenedActivity = LastOpenedActivity.DETAILS_ACTIVITY_DEEP_LINKING;
+            backgroundColor = intent.getData().getQueryParameter(DEEP_LINKING_BACKGROUND_PARAM);
+            startDetailsActivity(ActivityStartedSource.DEEP_LINKING, backgroundColor);
             getIntent().setData(null);
-        // Else check what is the last opened activity
-        } else {
-            switch (lastOpenedActivity) {
-                case MAIN_ACTIVITY:
-                    // Do nothing
-                    break;
-                case DETAILS_ACTIVITY_NORMAL:
-                    // Starts the details activity normally
-                    startDetailsActivity(ActivityStartedSource.MAIN_ACTIVITY);
-                    break;
-                case DETAILS_ACTIVITY_DEEP_LINKING:
-                    // Starts the details activity with deep linking
-                    startDetailsActivity(ActivityStartedSource.DEEP_LINKING, lastBackgroundColorByDeepLinking);
-                    break;
-            }
+            // Else check what is the last opened activity
         }
     }
 
@@ -210,7 +180,6 @@ public class MainActivity extends ActionBarActivity {
                 // false, then we will end up showing the main activity when we should show the deep linking activity.
                 if (resultCode == RESULT_OK) {
                     Log.d(TAG, "Result received and it is ok");
-                    lastOpenedActivity = LastOpenedActivity.MAIN_ACTIVITY;
                 }
                 break;
         }
